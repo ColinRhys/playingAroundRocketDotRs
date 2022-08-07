@@ -1,28 +1,38 @@
 #[macro_use] extern crate rocket;
+#[macro_use] extern crate serde;
+
+mod user;
+use user::{User};
+use rocket::serde::json::{Json, Value};
+use serde::{Serialize, Deserialize};
+use serde_json::json;
 
 #[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn get_users() -> Value {
+    json!{[
+        "User 1",
+        "User 2"
+    ]}
 }
 
-#[get("/<name>")]
-fn hello(name: &str) -> String {
-    format!("Hello, {}!", name)
+#[post("/", data = "<user>")]
+fn create_user(user: Json<User>) -> Json<User> {
+    user
 }
 
-#[get("/<name>/<age>")]
-fn name_and_age(name: &str, age: u32) -> String {
-    if name == "Jimmy" {
-        format!("Wow {} it is YOU. You are {} years old I know", name, age)
-    } else {
-        format!("Hello, my name is {} and I am {} years old", name, age)
-    }
+#[put("/<id>", data = "<user>")]
+fn update(id: i32, user: Json<User>) -> Json<User> {
+    user
 }
+
+#[delete("/<id>")]
+fn delete(id: i32) -> Value {
+    json!({"status": "ok"})
+}
+
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-    .mount("/", routes![index])
-    .mount("/hello", routes![hello])
-    .mount("/nameAndAge", routes![name_and_age])
+    .mount("/", routes![get_users, create_user, update, delete])
 }
